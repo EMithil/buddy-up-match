@@ -117,7 +117,7 @@ const FilterBar = ({ onApplyFilters }) => {
                 <SelectValue placeholder="Any type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any type</SelectItem>
+                <SelectItem value="any">Any type</SelectItem>
                 <SelectItem value="private">Private Room</SelectItem>
                 <SelectItem value="shared">Shared Room</SelectItem>
                 <SelectItem value="studio">Studio</SelectItem>

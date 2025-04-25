@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
@@ -71,6 +71,72 @@ const roomsData = [
 
 const Rooms = () => {
   const { isAuthenticated } = useAuth();
+  const [filteredRooms, setFilteredRooms] = useState(roomsData);
+
+  const handleApplyFilters = (filters) => {
+    console.log("Applied filters:", filters);
+    
+    // If no filters are applied (reset case), show all rooms
+    if (Object.keys(filters).length === 0) {
+      setFilteredRooms(roomsData);
+      return;
+    }
+
+    // Apply filters to rooms
+    let filtered = [...roomsData];
+    
+    // Filter by price range
+    if (filters.priceMin !== undefined && filters.priceMax !== undefined) {
+      filtered = filtered.filter(room => 
+        room.price >= filters.priceMin && room.price <= filters.priceMax
+      );
+    }
+    
+    // Filter by room type
+    if (filters.roomType && filters.roomType !== "any") {
+      filtered = filtered.filter(room => {
+        const roomTypeMap = {
+          'private': 'Private Room',
+          'shared': 'Shared Room',
+          'studio': 'Studio',
+          'entire': 'Entire Apartment'
+        };
+        return room.roomType.toLowerCase().includes(roomTypeMap[filters.roomType].toLowerCase());
+      });
+    }
+    
+    // Filter by location
+    if (filters.location) {
+      filtered = filtered.filter(room =>
+        room.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+    
+    // Sort rooms
+    if (filters.sortBy) {
+      switch (filters.sortBy) {
+        case 'price-asc':
+          filtered.sort((a, b) => a.price - b.price);
+          break;
+        case 'price-desc':
+          filtered.sort((a, b) => b.price - a.price);
+          break;
+        case 'newest':
+          // For demo, we could sort by id assuming newer listings have higher ids
+          filtered.sort((a, b) => b.id - a.id);
+          break;
+        case 'rating':
+          // Sort by compatibility score
+          filtered.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+          break;
+        default:
+          // 'relevance' - default order
+          break;
+      }
+    }
+    
+    setFilteredRooms(filtered);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -80,14 +146,26 @@ const Rooms = () => {
         <h1 className="text-3xl font-bold mb-6">Available Rooms</h1>
         
         <div className="mb-8">
-          <FilterBar />
+          <FilterBar onApplyFilters={handleApplyFilters} />
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {roomsData.map(room => (
-            <RoomCard key={room.id} room={room} />
-          ))}
-        </div>
+        {filteredRooms.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredRooms.map(room => (
+              <RoomCard key={room.id} room={room} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-500">No rooms match your search criteria.</p>
+            <button 
+              className="mt-4 text-primary underline"
+              onClick={() => handleApplyFilters({})}
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
