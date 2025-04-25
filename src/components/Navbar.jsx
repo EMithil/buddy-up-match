@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ const Navbar = ({ isAuthenticated }) => {
 
           {/* Mobile menu */}
           {isMenuOpen && (
-            <div className="md:hidden mt-4 bg-white shadow-lg rounded-lg py-2 px-4 absolute right-6 left-6">
+            <div className="md:hidden fixed top-16 right-0 left-0 bg-white shadow-lg py-2 px-4 z-20">
               <div className="flex flex-col space-y-3">
                 <Link 
                   to="/" 
