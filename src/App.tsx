@@ -11,6 +11,9 @@ import Register from "./pages/Register";
 import UserType from "./pages/UserType";
 import Preferences from "./pages/Preferences";
 import Profile from "./pages/Profile";
+import Rooms from "./pages/Rooms";
+import Roommates from "./pages/Roommates";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
             <Route path="/user-type" element={<UserType />} />
             <Route path="/preferences" element={<Preferences />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/rooms" element={<Rooms />} />
+            <Route path="/roommates" element={<Roommates />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -38,4 +44,3 @@ const App = () => (
 );
 
 export default App;
-
