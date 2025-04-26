@@ -59,6 +59,9 @@ const Navbar = ({ isAuthenticated }) => {
             <Link to="/roommates" className="text-gray-700 hover:text-primary transition-colors">
               Find Roommates
             </Link>
+            <Link to="/profile/host" className="text-gray-700 hover:text-primary transition-colors">
+              Host a Room
+            </Link>
             <Link to="/about" className="text-gray-700 hover:text-primary transition-colors">
               How it Works
             </Link>
@@ -109,6 +112,13 @@ const Navbar = ({ isAuthenticated }) => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Find Roommates
+                </Link>
+                <Link 
+                  to="/profile/host" 
+                  className="text-gray-700 hover:text-primary py-2 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Host a Room
                 </Link>
                 <Link 
                   to="/about" 
