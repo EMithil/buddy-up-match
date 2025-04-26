@@ -32,6 +32,7 @@ const App = () => (
             <Route path="/user-type" element={<UserType />} />
             <Route path="/preferences" element={<Preferences />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/host" element={<HostRoom />} />
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/roommates" element={<Roommates />} />
             <Route path="/about" element={<About />} />
