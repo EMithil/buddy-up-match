@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import UserType from "./pages/UserType";
 import Preferences from "./pages/Preferences";
 import Profile from "./pages/Profile";
+import HostRoom from "./pages/HostRoom";
 import Rooms from "./pages/Rooms";
 import Roommates from "./pages/Roommates";
 import About from "./pages/About";
