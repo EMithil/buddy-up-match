@@ -1,13 +1,12 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/Navbar";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Checkbox } from "../components/ui/checkbox";
+import { Separator } from "../components/ui/separator";
+import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -18,6 +17,8 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    age: "",
+    gender: "",
     agreeTerms: false,
   });
   
@@ -44,6 +45,11 @@ const Register = () => {
     
     if (!formData.confirmPassword) newErrors.confirmPassword = "Please confirm your password";
     else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+
+    if (!formData.age) newErrors.age = "Age is required";
+    else if (isNaN(formData.age) || formData.age < 18 || formData.age > 100) newErrors.age = "Age must be a number between 18 and 100";
+
+    if (!formData.gender) newErrors.gender = "Gender is required";
     
     if (!formData.agreeTerms) newErrors.agreeTerms = "You must agree to the terms and conditions";
     
@@ -57,7 +63,7 @@ const Register = () => {
     if (!validate()) return;
     
     try {
-      await register(formData.email, formData.password, formData.name);
+      await register(formData.email, formData.password, formData.name, Number(formData.age), formData.gender);
       navigate("/preferences");
     } catch (error) {
       console.error("Registration error:", error);
@@ -164,6 +170,44 @@ const Register = () => {
                 />
                 {errors.confirmPassword && (
                   <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="age">Age</Label>
+                <Input
+                  id="age"
+                  name="age"
+                  type="number"
+                  min="18"
+                  max="100"
+                  required
+                  value={formData.age}
+                  onChange={handleChange}
+                  className={errors.age ? "border-red-500" : ""}
+                />
+                {errors.age && (
+                  <p className="text-red-500 text-sm">{errors.age}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className={`w-full border rounded px-3 py-2 ${errors.gender ? "border-red-500" : "border-gray-300"}`}
+                  required
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.gender && (
+                  <p className="text-red-500 text-sm">{errors.gender}</p>
                 )}
               </div>
 

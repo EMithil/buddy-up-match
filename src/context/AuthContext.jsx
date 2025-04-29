@@ -1,6 +1,5 @@
-
 import { createContext, useState, useContext, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '../hooks/use-toast';
 
 // Create the AuthContext
 const AuthContext = createContext();
@@ -11,6 +10,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // New states for registered email and password
+  const [registeredEmail, setRegisteredEmail] = useState(null);
+  const [registeredPassword, setRegisteredPassword] = useState(null);
 
   // Check if user is already logged in (from localStorage)
   useEffect(() => {
@@ -31,35 +34,57 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Register a new user
-  const register = async (email, password, name) => {
+  const register = async (email, password, full_name, age, gender) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // This would be an API call in a real app
-      // For now, we'll mock the behavior
-      console.log("Registering user with:", { email, password, name });
-      
-      // Mock a successful registration
-      const mockUser = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        name,
-        preferences: null,
-        userType: null,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Store user in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: password, full_name, age, gender }),
+      });
+
+      if (!response.ok) {
+        let errorData = {};
+        let errorText = '';
+        try {
+          errorData = await response.json();
+        } catch {
+          // ignore JSON parse error
+        }
+        try {
+          errorText = await response.text();
+        } catch {
+          // ignore text read error
+        }
+        console.error(`Registration failed with status ${response.status}: ${errorText}`);
+        throw new Error(errorData.error || 'Registration failed');
+      }
+
+      let newUser = null;
+      try {
+        newUser = await response.json();
+      } catch {
+        // response body empty or invalid JSON
+        newUser = null;
+      }
+
+      if (newUser) {
+        localStorage.setItem('user', JSON.stringify(newUser));
+        setUser(newUser);
+      }
+
+      // Store registered email and password in state
+      setRegisteredEmail(email);
+      setRegisteredPassword(password);
+
       toast({
         title: "Registration successful",
         description: "Welcome! Let's set up your preferences now.",
       });
-      
-      return mockUser;
+
+      return newUser;
     } catch (err) {
       console.error("Registration error:", err);
       setError(err.message || 'Registration failed. Please try again.');
@@ -78,38 +103,47 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
-    
+
+    // Use stored registered email and password if not provided
+    const loginEmail = email || registeredEmail;
+    const loginPassword = password || registeredPassword;
+
     try {
-      // This would be an API call in a real app
-      console.log("Logging in user with:", { email, password });
-      
-      // Validate inputs
-      if (!email || !password) {
-        throw new Error('Email and password are required');
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch {
+          // ignore JSON parse error
+        }
+        throw new Error(errorData.error || 'Login failed');
       }
-      
-      // Mock a successful login
-      // In a real app, this would verify credentials with a backend
-      const mockUser = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        name: email.split('@')[0], // Mock name from email
-        preferences: {
-          userType: Math.random() > 0.5 ? 'seeker' : 'owner',
-        },
-        createdAt: new Date().toISOString()
-      };
-      
-      // Store user in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      
+
+      let loggedInUser = null;
+      try {
+        loggedInUser = await response.json();
+      } catch {
+        // response body empty or invalid JSON
+        loggedInUser = null;
+      }
+
+      if (loggedInUser) {
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
+        setUser(loggedInUser);
+      }
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      
-      return mockUser;
+
+      return loggedInUser;
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || 'Login failed. Please check your credentials and try again.');
