@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import RoomCard from '@/components/RoomCard';
 import { useAuth } from '@/context/AuthContext';
 
-// Sample room data - This would come from API in a real app
+
 const featuredRooms = [
   {
     id: 1,

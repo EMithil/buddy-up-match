@@ -1,15 +1,115 @@
 const db = require('./index');
 
-// Get room by ID
-const getRoomById = async (id) => {
-  const result = await db.query('SELECT * FROM rooms WHERE id = $1', [id]);
-  return result.rows[0];
+// Helper function to get amenities for a room
+const getAmenitiesByRoomId = async (roomId) => {
+  const result = await db.query(
+    'SELECT amenity FROM room_amenities WHERE room_id = $1',
+    [roomId]
+  );
+  return result.rows.map(row => row.amenity);
 };
 
-// Get all rooms (with optional limit)
-const getAllRooms = async (limit = 100) => {
-  const result = await db.query('SELECT * FROM rooms ORDER BY created_at DESC LIMIT $1', [limit]);
+// Helper function to get photos for a room
+const getPhotosByRoomId = async (roomId) => {
+  const result = await db.query(
+    'SELECT photo_url, caption, display_order FROM room_photos WHERE room_id = $1 ORDER BY display_order ASC',
+    [roomId]
+  );
   return result.rows;
+};
+
+// Helper function to get current roommates for a room
+const getRoommatesByRoomId = async (roomId) => {
+  const result = await db.query(
+    `SELECT u.id, u.full_name as name, u.email
+     FROM room_members rm
+     JOIN users u ON rm.user_id = u.id
+     WHERE rm.room_id = $1 AND rm.is_current_resident = TRUE`,
+    [roomId]
+  );
+  return result.rows;
+};
+
+// Get room by ID with related data including location joined
+const getRoomById = async (id) => {
+  const roomResult = await db.query(
+    `SELECT r.*, l.id as location_id, l.street_address, l.city, l.state, l.postal_code, l.country
+     FROM rooms r
+     LEFT JOIN locations l ON r.location_id = l.id
+     WHERE r.id = $1`,
+    [id]
+  );
+  const roomRow = roomResult.rows[0];
+  if (!roomRow) return null;
+
+  const amenities = await getAmenitiesByRoomId(id);
+  const photos = await getPhotosByRoomId(id);
+  const roommates = await getRoommatesByRoomId(id);
+
+  const location = {
+    id: roomRow.location_id,
+    street_address: roomRow.street_address,
+    city: roomRow.city,
+    state: roomRow.state,
+    postal_code: roomRow.postal_code,
+    country: roomRow.country,
+  };
+
+  const {
+    location_id, street_address, city, state, postal_code, country, ...room
+  } = roomRow;
+
+  return {
+    ...room,
+    amenities,
+    photos,
+    roommates,
+    location,
+  };
+};
+
+// Get all rooms with related data (limit) including location joined
+const getAllRooms = async (limit = 100) => {
+  const roomsResult = await db.query(
+    `SELECT r.*, l.id as location_id, l.street_address, l.city, l.state, l.postal_code, l.country
+     FROM rooms r
+     LEFT JOIN locations l ON r.location_id = l.id
+     ORDER BY r.created_at DESC
+     LIMIT $1`,
+    [limit]
+  );
+  const rooms = roomsResult.rows;
+
+  const roomsWithDetails = await Promise.all(
+    rooms.map(async (roomRow) => {
+      const amenities = await getAmenitiesByRoomId(roomRow.id);
+      const photos = await getPhotosByRoomId(roomRow.id);
+      const roommates = await getRoommatesByRoomId(roomRow.id);
+
+      const location = {
+        id: roomRow.location_id,
+        street_address: roomRow.street_address,
+        city: roomRow.city,
+        state: roomRow.state,
+        postal_code: roomRow.postal_code,
+        country: roomRow.country,
+      };
+
+      const {
+        location_id, street_address, city, state, postal_code, country, ...room
+      } = roomRow;
+
+      return {
+        ...room,
+        amenities,
+        photos,
+        roommates,
+        location,
+      };
+    })
+  );
+
+  return roomsWithDetails;
 };
 
 // Create new room
